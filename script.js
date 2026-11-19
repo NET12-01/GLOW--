@@ -1,318 +1,76 @@
-/* ============================================================
-   GLOW by Ro — Revista Digital
-   ============================================================ */
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GLOW by Ro — Revista digital</title>
+<meta name="description" content="Revista digital de GLOW by Ro: catálogo de productos de belleza y pedidos por WhatsApp.">
+<meta name="theme-color" content="#A63608">
+<meta property="og:title" content="GLOW by Ro — Revista digital">
+<meta property="og:description" content="Catálogo de productos de belleza y pedidos por WhatsApp.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="img/logo.png">
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
 
-const CONFIG = {
-  WHATSAPP: '5491123456789',
-  MODE: 'auto',
-  TOTAL_PAGES: 20,
-  IMAGE_EXT: 'jpg',
-  PAGE_WIDTH: 519,
-  PAGE_HEIGHT: 793,
-  DOWNLOAD_URL: ''
-};
-
-const PRODUCTOS_DEFAULT = [
-  { id:1,  marca:'Glow Lab',      nombre:'Sérum Iluminador Vitamina C',  cat:'Skincare',   precio:34900, tag:'Best seller', desc:'Unifica el tono y aporta luminosidad inmediata.', img:'' },
-  { id:2,  marca:'Glow Lab',      nombre:'Crema Hidratante Hialurónico', cat:'Skincare',   precio:28500, tag:'',            desc:'Hidratación profunda 24 h, textura ligera.', img:'' },
-  { id:3,  marca:'Botica Verde',  nombre:'Aceite Facial Rosa Mosqueta',  cat:'Skincare',   precio:31000, tag:'Nuevo',       desc:'Regenera y nutre la piel durante la noche.', img:'' },
-  { id:4,  marca:'Botica Verde',  nombre:'Limpiador Suave de Rosas',     cat:'Skincare',   precio:19900, tag:'',            desc:'Espuma delicada que limpia sin resecar.', img:'' },
-  { id:5,  marca:'Velvet Beauty', nombre:'Labial Líquido Mate Velvet',   cat:'Maquillaje', precio:16900, tag:'Best seller', desc:'Color intenso de larga duración.', img:'' },
-  { id:6,  marca:'Velvet Beauty', nombre:'Base Luminosa Skin Glow',      cat:'Maquillaje', precio:27500, tag:'',            desc:'Cobertura media modulable, acabado natural.', img:'' },
-  { id:7,  marca:'Velvet Beauty', nombre:'Paleta de Sombras Nude',       cat:'Maquillaje', precio:32000, tag:'',            desc:'12 tonos neutros mate y satinados.', img:'' },
-  { id:8,  marca:'Velvet Beauty', nombre:'Máscara de Pestañas Volumen',  cat:'Maquillaje', precio:14900, tag:'',            desc:'Volumen extremo y curvatura duradera.', img:'' },
-  { id:9,  marca:'Maison Aura',   nombre:'Eau de Parfum Vainilla Ámbar', cat:'Fragancias', precio:59000, tag:'Exclusivo',   desc:'Notas cálidas de vainilla, ámbar y sándalo.', img:'' },
-  { id:10, marca:'Maison Aura',   nombre:'Bruma Corporal Flor de Azahar',cat:'Fragancias', precio:24000, tag:'',            desc:'Bruma ligera y refrescante.', img:'' },
-  { id:11, marca:'Lumi Hair',     nombre:'Shampoo Reparador Keratina',   cat:'Cabello',    precio:21500, tag:'',            desc:'Repara la fibra capilar y sella las puntas.', img:'' },
-  { id:12, marca:'Lumi Hair',     nombre:'Mascarilla Capilar Nutritiva', cat:'Cabello',    precio:23000, tag:'Nuevo',       desc:'Tratamiento intensivo con karité y aguacate.', img:'' }
-];
-
-const $ = s => document.querySelector(s);
-const money = n => '$' + Number(n).toLocaleString('es-AR');
-const pad = n => String(n).padStart(4, '0');
-
-let pageFlip = null;
-let pagesList = [];
-
-let lastDateKey = '';
-function actualizarFecha(){
-  const d = new Date();
-  const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-  if (key === lastDateKey) return;
-  lastDateKey = key;
-  const dd = String(d.getDate()).padStart(2,'0');
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  const el = $('#topSub');
-  if (el) el.textContent = `Precios al ${dd}/${mm}/${d.getFullYear()} · Revista digital`;
-}
-
-function applyWhatsAppLinks(){
-  const msg = '¡Hola GLOW by Ro! Quiero hacer un pedido 💫';
-  const url = `https://wa.me/${CONFIG.WHATSAPP}?text=${encodeURIComponent(msg)}`;
-  $('#btnWhats').href = url;
-  $('#waFloat').href = url;
-}
-
-function buildPagesList(){
-  pagesList = [];
-
-  if (CONFIG.MODE === 'images'){
-    for (let i = 1; i <= CONFIG.TOTAL_PAGES; i++){
-      pagesList.push({
-        src: `pages/${pad(i)}.${CONFIG.IMAGE_EXT}`,
-        label: `Página ${i}`,
-        isImagePage: true
-      });
-    }
-    return;
-  }
-
-  pagesList.push({ type: 'cover', label: 'Portada' });
-  for (let i = 0; i < PRODUCTOS_DEFAULT.length; i += 2){
-    pagesList.push({
-      type: 'products',
-      products: PRODUCTOS_DEFAULT.slice(i, i + 2),
-      label: `Productos ${i+1}-${Math.min(i+2, PRODUCTOS_DEFAULT.length)}`
-    });
-  }
-  pagesList.push({ type: 'back', label: 'Contratapa' });
-}
-
-function renderFlipbookDOM(){
-  const fb = $('#flipbook');
-  fb.innerHTML = '';
-
-  pagesList.forEach((page, idx) => {
-    const el = document.createElement('div');
-    el.className = 'page';
-    el.dataset.idx = idx;
-
-    if (page.isImagePage){
-      el.innerHTML = `
-        <div class="page-inner page-image-inner">
-          <img src="${page.src}" alt="${page.label}" loading="lazy"
-               onerror="this.style.display='none'; this.parentElement.classList.add('page-error');">
-        </div>
-      `;
-    } else if (page.type === 'cover'){
-      el.classList.add('page-cover');
-      el.innerHTML = `
-        <div class="page-inner cover-inner">
-          <div class="cover-logo">
-            <img src="img/logo.png" alt="GLOW by Ro"
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='grid'">
-            <div class="cover-logo-fallback">✦</div>
-          </div>
-          <p class="cover-kicker">Edición especial</p>
-          <h2 class="cover-title">Belleza que<br>brilla</h2>
-          <p class="cover-desc">Hojalá la revista y descubrí lo mejor en skincare, maquillaje, fragancias y cabello.</p>
-          <p class="cover-hint">← Arrastrá o usá las flechas →</p>
-        </div>
-      `;
-    } else if (page.type === 'back'){
-      el.classList.add('page-back');
-      el.innerHTML = `
-        <div class="page-inner back-inner">
-          <div class="back-logo">✦</div>
-          <h2 class="back-title">¡Gracias por<br>tu visita!</h2>
-          <p class="back-desc">Cualquier consulta, escribinos por WhatsApp. ¡Te esperamos!</p>
-          <a class="btn-primary btn-large" href="https://wa.me/${CONFIG.WHATSAPP}" target="_blank">Escribinos</a>
-        </div>
-      `;
-    } else if (page.type === 'products'){
-      el.classList.add('page-products');
-      el.innerHTML = `
-        <div class="page-inner products-inner">
-          ${page.products.map(renderProductCard).join('')}
-        </div>
-      `;
-    }
-
-    fb.appendChild(el);
-  });
-}
-
-function renderProductCard(p){
-  const imgSrc = p.img ? (p.img.startsWith('img/') ? p.img : 'img/' + p.img) : `img/${p.id}.jpg`;
-  const msg = `¡Hola! Quiero pedir: ${p.nombre} (${money(p.precio)})`;
-  return `
-    <div class="product-card" data-id="${p.id}">
-      <div class="card-img-wrap">
-        ${p.tag ? `<span class="card-tag">${p.tag}</span>` : ''}
-        <img class="card-img" src="${imgSrc}" alt="${p.nombre}" loading="lazy"
-             onerror="this.style.display='none'">
-      </div>
-      ${p.marca ? `<div class="card-brand">${p.marca}</div>` : ''}
-      <div class="card-name">${p.nombre}</div>
-      ${p.desc ? `<div class="card-desc">${p.desc}</div>` : ''}
-      <div class="card-price">${money(p.precio)}</div>
-      <a class="card-add" href="https://wa.me/${CONFIG.WHATSAPP}?text=${encodeURIComponent(msg)}" target="_blank">
-        Pedir por WhatsApp
-      </a>
+<header class="topbar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true"><img src="img/logo.png" alt="" onerror="this.remove()">✦</span>
+    <div class="brand-text">
+      <h1>GLOW by Ro</h1>
+      <p id="topSub">Revista digital</p>
     </div>
-  `;
-}
+  </div>
+  <nav class="actions" aria-label="Acciones">
+    <button class="btn-ghost" id="btnIndex" type="button" aria-label="Ver índice de páginas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span class="label">Índice</span>
+    </button>
+    <button class="btn-ghost" id="btnDownload" type="button" aria-label="Descargar revista" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+      <span class="label">Descargar</span>
+    </button>
+    <a class="btn-wa" id="btnWhats" href="#" target="_blank" rel="noopener" aria-label="Pedir por WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-1.8-.9-3-1.6-4.2-3.7-.3-.5.3-.5.9-1.5.1-.2 0-.4 0-.5s-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.1 4.6 1.9.8 2.7.9 3.6.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.1-1.3c1.4.8 3.1 1.3 4.9 1.3 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
+      <span class="label">WhatsApp</span>
+    </a>
+  </nav>
+</header>
 
-function initFlipbook(){
-  const fb = $('#flipbook');
+<main class="viewer" id="viewer">
+  <div class="flipbook" id="flipbook"></div>
+  <div class="loader" id="loader" role="status">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>Cargando revista…</p>
+  </div>
+</main>
 
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      try {
-        pageFlip = new St.PageFlip(fb, {
-          width: CONFIG.PAGE_WIDTH,
-          height: CONFIG.PAGE_HEIGHT,
-          size: 'stretch',
-          minWidth: 260,
-          maxWidth: 720,
-          minHeight: 400,
-          maxHeight: 1150,
-          showCover: true,
-          usePortrait: true,
-          drawShadow: true,
-          maxShadowOpacity: 0.35,
-          showPageCorners: true,
-          useMouseEvents: true,
-          mobileScrollSupport: false,
-          swipeDistance: 25,
-          clickEventForward: true,
-          startPage: 0
-        });
+<nav class="pager" id="pager" aria-label="Navegación de páginas" hidden>
+  <button class="pager-btn" id="piPrev" type="button" aria-label="Página anterior">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+  </button>
+  <span class="pager-label" id="piLabel" aria-live="polite">1 / 1</span>
+  <button class="pager-btn" id="piNext" type="button" aria-label="Página siguiente">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+  </button>
+</nav>
 
-        pageFlip.loadFromHTML(fb.querySelectorAll('.page'));
+<div class="modal" id="pagesModal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="pagesTitle">
+    <div class="modal-head">
+      <h2 id="pagesTitle">Índice de páginas</h2>
+      <button class="icon-btn" id="closePages" type="button" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="pages-grid" id="pagesGrid"></div>
+  </div>
+</div>
 
-        const updateUI = () => {
-          const total = pageFlip.getPageCount();
-          const curr = pageFlip.getCurrentPageIndex() + 1;
-          $('#piLabel').textContent = `${curr} / ${total}`;
-        };
-        pageFlip.on('flip', updateUI);
-        setTimeout(updateUI, 150);
-
-        $('#pageIndicator').hidden = false;
-
-        const loader = $('#loader');
-        const bar = $('#loaderBar');
-        bar.style.width = '100%';
-        setTimeout(() => { loader.classList.add('loader--done'); }, 250);
-        setTimeout(() => { loader.style.display = 'none'; }, 700);
-
-      } catch (err){
-        console.error('Error StPageFlip:', err);
-        $('#loader').innerHTML = '<p>No se pudo cargar la revista.</p>';
-      }
-    }, 400);
-  });
-}
-
-function bindNavControls(){
-  $('#piPrev').addEventListener('click', () => { if (pageFlip) pageFlip.flipPrev(); });
-  $('#piNext').addEventListener('click', () => { if (pageFlip) pageFlip.flipNext(); });
-
-  document.addEventListener('keydown', e => {
-    if (!$('#pagesModal').hidden) return;
-    if (e.key === 'ArrowLeft')  { if (pageFlip) pageFlip.flipPrev(); }
-    if (e.key === 'ArrowRight') { if (pageFlip) pageFlip.flipNext(); }
-  });
-}
-
-function renderPagesGrid(){
-  const grid = $('#pagesGrid');
-  grid.innerHTML = '';
-
-  const total = pageFlip ? pageFlip.getPageCount() : pagesList.length;
-
-  for (let i = 0; i < total; i++){
-    const pageData = pagesList[i];
-    const thumb = document.createElement('button');
-    thumb.className = 'page-thumb';
-    thumb.dataset.idx = i;
-
-    if (pageData && pageData.isImagePage){
-      thumb.innerHTML = `
-        <img src="${pageData.src}" alt="Página ${i+1}" loading="lazy"
-             onerror="this.style.display='none'; this.parentElement.classList.add('thumb-error');">
-        <span class="thumb-num">${i+1}</span>
-      `;
-    } else if (pageData && pageData.type === 'cover'){
-      thumb.innerHTML = `<div class="thumb-placeholder thumb-cover">✦<span class="thumb-num">${i+1}</span></div>`;
-    } else if (pageData && pageData.type === 'back'){
-      thumb.innerHTML = `<div class="thumb-placeholder thumb-back">✦<span class="thumb-num">${i+1}</span></div>`;
-    } else if (pageData && pageData.type === 'products'){
-      const first = pageData.products[0];
-      const src = first.img ? (first.img.startsWith('img/') ? first.img : 'img/' + first.img) : `img/${first.id}.jpg`;
-      thumb.innerHTML = `
-        <img src="${src}" alt="Página ${i+1}" loading="lazy"
-             onerror="this.style.display='none'; this.parentElement.classList.add('thumb-error');">
-        <span class="thumb-num">${i+1}</span>
-      `;
-    } else {
-      thumb.innerHTML = `<div class="thumb-placeholder"><span class="thumb-num">${i+1}</span></div>`;
-    }
-
-    thumb.addEventListener('click', () => {
-      if (pageFlip){
-        try { pageFlip.turnToPage(i); } catch(e){}
-      }
-      closePagesModal();
-    });
-
-    grid.appendChild(thumb);
-  }
-}
-
-function openPagesModal(){
-  renderPagesGrid();
-  $('#pagesModal').hidden = false;
-  document.body.style.overflow = 'hidden';
-}
-function closePagesModal(){
-  $('#pagesModal').hidden = true;
-  document.body.style.overflow = '';
-}
-
-let toastTimer;
-function toast(msg){
-  const el = $('#toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
-}
-
-function bindUI(){
-  $('#btnPages').addEventListener('click', openPagesModal);
-  $('#closePages').addEventListener('click', closePagesModal);
-  $('#pagesModal').addEventListener('click', e => {
-    if (e.target === $('#pagesModal')) closePagesModal();
-  });
-
-  $('#btnDownload').addEventListener('click', () => {
-    if (CONFIG.DOWNLOAD_URL){
-      window.open(CONFIG.DOWNLOAD_URL, '_blank');
-    } else {
-      toast('La descarga estará disponible pronto');
-    }
-  });
-
-  $('#btnMenu').addEventListener('click', () => {
-    openPagesModal();
-  });
-}
-
-function init(){
-  actualizarFecha();
-  applyWhatsAppLinks();
-  buildPagesList();
-  renderFlipbookDOM();
-  initFlipbook();
-  bindNavControls();
-  bindUI();
-
-  setInterval(actualizarFecha, 30000);
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) actualizarFecha();
-  });
-}
-
-document.addEventListener('DOMContentLoaded', init);
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
