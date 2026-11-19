@@ -1,76 +1,250 @@
-<!DOCTYPE html>
-<html lang="es-AR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GLOW by Ro — Revista digital</title>
-<meta name="description" content="Revista digital de GLOW by Ro: catálogo de productos de belleza y pedidos por WhatsApp.">
-<meta name="theme-color" content="#A63608">
-<meta property="og:title" content="GLOW by Ro — Revista digital">
-<meta property="og:description" content="Catálogo de productos de belleza y pedidos por WhatsApp.">
-<meta property="og:type" content="website">
-<meta property="og:image" content="img/logo.png">
-<link rel="icon" href="img/logo.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
+/* ============================================================
+   GLOW by Ro — Revista digital
+   ============================================================ */
 
-<header class="topbar">
-  <div class="brand">
-    <span class="mark" aria-hidden="true"><img src="img/logo.png" alt="" onerror="this.remove()">✦</span>
-    <div class="brand-text">
-      <h1>GLOW by Ro</h1>
-      <p id="topSub">Revista digital</p>
-    </div>
-  </div>
-  <nav class="actions" aria-label="Acciones">
-    <button class="btn-ghost" id="btnIndex" type="button" aria-label="Ver índice de páginas">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      <span class="label">Índice</span>
-    </button>
-    <button class="btn-ghost" id="btnDownload" type="button" aria-label="Descargar revista" hidden>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
-      <span class="label">Descargar</span>
-    </button>
-    <a class="btn-wa" id="btnWhats" href="#" target="_blank" rel="noopener" aria-label="Pedir por WhatsApp">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-1.8-.9-3-1.6-4.2-3.7-.3-.5.3-.5.9-1.5.1-.2 0-.4 0-.5s-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.1 4.6 1.9.8 2.7.9 3.6.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.1-1.3c1.4.8 3.1 1.3 4.9 1.3 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
-      <span class="label">WhatsApp</span>
-    </a>
-  </nav>
-</header>
+const CONFIG = {
+  WHATSAPP: '5491123456789',  // Reemplazar por el número real: código de país + área + número, sin "+" ni espacios
+  MODE: 'auto',               // 'auto' = catálogo generado · 'images' = páginas en la carpeta pages/
+  TOTAL_PAGES: 20,            // Solo para MODE 'images'
+  IMAGE_EXT: 'jpg',           // Solo para MODE 'images'
+  PAGE_WIDTH: 519,
+  PAGE_HEIGHT: 793,
+  DOWNLOAD_URL: ''            // URL del PDF. Si está vacío, el botón Descargar se oculta
+};
 
-<main class="viewer" id="viewer">
-  <div class="flipbook" id="flipbook"></div>
-  <div class="loader" id="loader" role="status">
-    <div class="spinner" aria-hidden="true"></div>
-    <p>Cargando revista…</p>
-  </div>
-</main>
+const PRODUCTOS = [
+  { id: 1,  marca: 'Glow Lab',      nombre: 'Sérum Iluminador Vitamina C',       cat: 'Cuidado de la piel', precio: 34900, tag: 'Más vendido', desc: 'Unifica el tono y aporta luminosidad inmediata.' },
+  { id: 2,  marca: 'Glow Lab',      nombre: 'Crema Hidratante de Ácido Hialurónico', cat: 'Cuidado de la piel', precio: 28500, tag: '', desc: 'Hidratación profunda por 24 h, textura liviana.' },
+  { id: 3,  marca: 'Botica Verde',  nombre: 'Aceite Facial de Rosa Mosqueta',    cat: 'Cuidado de la piel', precio: 31000, tag: 'Nuevo', desc: 'Regenera y nutre la piel durante la noche.' },
+  { id: 4,  marca: 'Botica Verde',  nombre: 'Limpiador Suave de Rosas',          cat: 'Cuidado de la piel', precio: 19900, tag: '', desc: 'Espuma delicada que limpia sin resecar.' },
+  { id: 5,  marca: 'Velvet Beauty', nombre: 'Labial Líquido Mate Velvet',        cat: 'Maquillaje', precio: 16900, tag: 'Más vendido', desc: 'Color intenso de larga duración.' },
+  { id: 6,  marca: 'Velvet Beauty', nombre: 'Base Luminosa Skin Glow',           cat: 'Maquillaje', precio: 27500, tag: '', desc: 'Cobertura media regulable, acabado natural.' },
+  { id: 7,  marca: 'Velvet Beauty', nombre: 'Paleta de Sombras Neutras',            cat: 'Maquillaje', precio: 32000, tag: '', desc: '12 tonos neutros mate y satinados.' },
+  { id: 8,  marca: 'Velvet Beauty', nombre: 'Máscara de Pestañas Volumen',       cat: 'Maquillaje', precio: 14900, tag: '', desc: 'Volumen extremo y curvatura duradera.' },
+  { id: 9,  marca: 'Maison Aura',   nombre: 'Eau de Parfum Vainilla Ámbar',      cat: 'Fragancias', precio: 59000, tag: 'Exclusivo', desc: 'Notas cálidas de vainilla, ámbar y sándalo.' },
+  { id: 10, marca: 'Maison Aura',   nombre: 'Bruma Corporal Flor de Azahar',     cat: 'Fragancias', precio: 24000, tag: '', desc: 'Bruma ligera y refrescante.' },
+  { id: 11, marca: 'Lumi Hair',     nombre: 'Champú Reparador de Queratina',    cat: 'Cabello', precio: 21500, tag: '', desc: 'Repara la fibra capilar y sella las puntas.' },
+  { id: 12, marca: 'Lumi Hair',     nombre: 'Mascarilla Capilar Nutritiva',      cat: 'Cabello', precio: 23000, tag: 'Nuevo', desc: 'Tratamiento intensivo con karité y aguacate.' }
+];
 
-<nav class="pager" id="pager" aria-label="Navegación de páginas" hidden>
-  <button class="pager-btn" id="piPrev" type="button" aria-label="Página anterior">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-  </button>
-  <span class="pager-label" id="piLabel" aria-live="polite">1 / 1</span>
-  <button class="pager-btn" id="piNext" type="button" aria-label="Página siguiente">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-  </button>
-</nav>
+const $ = s => document.querySelector(s);
+const money = n => '$' + Number(n).toLocaleString('es-AR');
+const pad = n => String(n).padStart(4, '0');
+const waUrl = text => `https://wa.me/${CONFIG.WHATSAPP}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
+const LOGO = '<img src="img/logo.png" alt="" onerror="this.remove()">✦';
 
-<div class="modal" id="pagesModal" hidden>
-  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="pagesTitle">
-    <div class="modal-head">
-      <h2 id="pagesTitle">Índice de páginas</h2>
-      <button class="icon-btn" id="closePages" type="button" aria-label="Cerrar">✕</button>
-    </div>
-    <div class="pages-grid" id="pagesGrid"></div>
-  </div>
-</div>
+let pageFlip = null;
+let pages = [];
 
-<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
-<script src="script.js"></script>
-</body>
-</html>
+/* ---------- Estructura de páginas ---------- */
+function buildPages(){
+  if (CONFIG.MODE === 'images'){
+    return Array.from({ length: CONFIG.TOTAL_PAGES }, (_, i) => ({
+      type: 'image', src: `pages/${pad(i + 1)}.${CONFIG.IMAGE_EXT}`, label: `Página ${i + 1}`
+    }));
+  }
+  const list = [{ type: 'cover' }];
+  for (let i = 0; i < PRODUCTOS.length; i += 2){
+    list.push({ type: 'products', items: PRODUCTOS.slice(i, i + 2) });
+  }
+  list.push({ type: 'back' });
+  return list;
+}
+
+/* ---------- Render ---------- */
+function cardHTML(p){
+  const src = p.img || `img/${p.id}.jpg`;
+  const msg = `¡Hola! Quiero pedir: ${p.nombre} (${money(p.precio)})`;
+  return `
+    <article class="product-card">
+      <div class="card-img">
+        ${p.tag ? `<span class="card-tag">${p.tag}</span>` : ''}
+        <img src="${src}" alt="${p.nombre}" loading="lazy" onerror="this.remove()">
+      </div>
+      <div class="card-brand">${p.marca}</div>
+      <h3 class="card-name">${p.nombre}</h3>
+      <p class="card-desc">${p.desc}</p>
+      <div class="card-price">${money(p.precio)}</div>
+      <a class="card-cta" href="${waUrl(msg)}" target="_blank" rel="noopener">Pedir por WhatsApp</a>
+    </article>`;
+}
+
+function pageHTML(p){
+  switch (p.type){
+    case 'image':
+      return `<div class="page-inner">
+        <img src="${p.src}" alt="${p.label}" loading="lazy"
+             onerror="this.parentElement.classList.add('page-error'); this.remove()">
+      </div>`;
+    case 'cover':
+      return `
+        <div class="page-inner cover">
+          <span class="mark mark-lg" aria-hidden="true">${LOGO}</span>
+          <p class="kicker">Edición especial</p>
+          <h2 class="cover-title">Belleza que<br>brilla</h2>
+          <p class="cover-desc">Lo mejor en cuidado de la piel, maquillaje, fragancias y cabello, en un solo lugar.</p>
+          <p class="hint">Arrastrar o usar las flechas para pasar las páginas</p>
+        </div>`;
+    case 'products':
+      return `
+        <div class="page-inner products">
+          <div class="cat-head">${p.items[0].cat}</div>
+          <div class="cards">${p.items.map(cardHTML).join('')}</div>
+        </div>`;
+    case 'back':
+      return `
+        <div class="page-inner back">
+          <div class="back-logo" aria-hidden="true">✦</div>
+          <h2 class="back-title">¡Gracias por<br>tu visita!</h2>
+          <p class="back-desc">Para consultas, te respondemos por WhatsApp. ¡Te esperamos!</p>
+          <a class="btn-light" href="${waUrl()}" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+        </div>`;
+  }
+  return '';
+}
+
+function renderBook(){
+  $('#flipbook').innerHTML = pages
+    .map(p => `<div class="page page-${p.type}">${pageHTML(p)}</div>`)
+    .join('');
+}
+
+function thumbHTML(p, i){
+  let body;
+  if (p.type === 'image'){
+    body = `<img src="${p.src}" alt="" loading="lazy" onerror="this.remove()">`;
+  } else if (p.type === 'products'){
+    const first = p.items[0];
+    const last = p.items[p.items.length - 1];
+    body = `<div class="thumb-txt">${first.cat}<small>Productos ${first.id} a ${last.id}</small></div>`;
+  } else {
+    body = `<div class="thumb-txt">${p.type === 'cover' ? 'Portada' : 'Contratapa'}</div>`;
+  }
+  return `<button class="thumb" type="button" data-idx="${i}" aria-label="Ir a la página ${i + 1}">
+    ${body}<span class="thumb-num">${i + 1}</span>
+  </button>`;
+}
+
+function renderIndex(){
+  $('#pagesGrid').innerHTML = pages.map(thumbHTML).join('');
+}
+
+/* ---------- Revista ---------- */
+function updateLabel(){
+  $('#piLabel').textContent = `${pageFlip.getCurrentPageIndex() + 1} / ${pageFlip.getPageCount()}`;
+}
+
+function hideLoader(){
+  const loader = $('#loader');
+  loader.classList.add('done');
+  setTimeout(() => loader.remove(), 500);
+}
+
+function showError(){
+  $('#loader').innerHTML = '<p>No se pudo cargar la revista. Recargar la página para intentarlo de nuevo.</p>';
+}
+
+function initBook(){
+  if (typeof St === 'undefined'){
+    showError();
+    return;
+  }
+  try {
+    pageFlip = new St.PageFlip($('#flipbook'), {
+      width: CONFIG.PAGE_WIDTH,
+      height: CONFIG.PAGE_HEIGHT,
+      size: 'stretch',
+      minWidth: 260,
+      maxWidth: 720,
+      minHeight: 400,
+      maxHeight: 1150,
+      showCover: true,
+      usePortrait: true,
+      drawShadow: true,
+      maxShadowOpacity: 0.35,
+      showPageCorners: true,
+      useMouseEvents: true,
+      mobileScrollSupport: false,
+      swipeDistance: 25,
+      clickEventForward: true,
+      startPage: 0
+    });
+    pageFlip.loadFromHTML($('#flipbook').querySelectorAll('.page'));
+    pageFlip.on('flip', updateLabel);
+    updateLabel();
+    $('#pager').hidden = false;
+    hideLoader();
+  } catch (err){
+    console.error('Error al iniciar la revista:', err);
+    showError();
+  }
+}
+
+/* ---------- Índice ---------- */
+function openIndex(){
+  $('#pagesModal').hidden = false;
+  document.body.style.overflow = 'hidden';
+  $('#closePages').focus();
+}
+
+function closeIndex(){
+  $('#pagesModal').hidden = true;
+  document.body.style.overflow = '';
+  $('#btnIndex').focus();
+}
+
+/* ---------- Eventos ---------- */
+function bindEvents(){
+  $('#piPrev').addEventListener('click', () => pageFlip?.flipPrev());
+  $('#piNext').addEventListener('click', () => pageFlip?.flipNext());
+
+  $('#btnIndex').addEventListener('click', openIndex);
+  $('#closePages').addEventListener('click', closeIndex);
+  $('#pagesModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeIndex();
+  });
+  $('#pagesGrid').addEventListener('click', e => {
+    const thumb = e.target.closest('.thumb');
+    if (!thumb) return;
+    pageFlip?.turnToPage(Number(thumb.dataset.idx));
+    closeIndex();
+  });
+
+  $('#btnDownload').addEventListener('click', () => {
+    window.open(CONFIG.DOWNLOAD_URL, '_blank', 'noopener');
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!$('#pagesModal').hidden){
+      if (e.key === 'Escape') closeIndex();
+      return;
+    }
+    if (e.key === 'ArrowLeft') pageFlip?.flipPrev();
+    if (e.key === 'ArrowRight') pageFlip?.flipNext();
+  });
+}
+
+function actualizarFecha(){
+  const hoy = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  $('#topSub').textContent = `Precios actualizados al ${hoy}`;
+}
+
+/* ---------- Inicio ---------- */
+function init(){
+  $('#btnWhats').href = waUrl('¡Hola GLOW by Ro! Quiero hacer un pedido 💫');
+  $('#btnDownload').hidden = !CONFIG.DOWNLOAD_URL;
+
+  actualizarFecha();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) actualizarFecha();
+  });
+
+  pages = buildPages();
+  renderBook();
+  renderIndex();
+  bindEvents();
+
+  requestAnimationFrame(() => setTimeout(initBook, 300));
+}
+
+document.addEventListener('DOMContentLoaded', init);
